@@ -1,30 +1,36 @@
 FROM node:12.21.0-buster-slim as base
-# This image is NOT made for production use.
 LABEL maintainer="Eero Ruohola <eero.ruohola@shuup.com>"
 
-RUN apt-get update \
-    && apt-get --assume-yes install \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         libpangocairo-1.0-0 \
         python3 \
         python3-dev \
-        python3-pil \
         python3-pip \
-    && rm -rf /var/lib/apt/lists/ /var/cache/apt/
+        libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# These invalidate the cache every single time but
-# there really isn't any other obvious way to do this.
+# Copy project files
 COPY . /app
 WORKDIR /app
 
-# The dev compose file sets this to 1 to support development and editing the source code.
-# The default value of 0 just installs the demo for running.
+# Install Python dependencies
 ARG editable=0
+RUN if [ "$editable" -eq 1 ]; then \
+        pip3 install --upgrade pip && \
+        pip3 install -r requirements-tests.txt && \
+        python3 setup.py build_resources; \
+    else \
+        pip3 install --upgrade pip && \
+        pip3 install shuup; \
+    fi
 
-RUN if [ "$editable" -eq 1 ]; then pip3 install -r requirements-tests.txt && python3 setup.py build_resources; else pip3 install shuup; fi
-
+# Run migrations and setup
 RUN python3 -m shuup_workbench migrate
 RUN python3 -m shuup_workbench shuup_init
 
+# Create superuser (if not exists)
 RUN echo '\
 from django.contrib.auth import get_user_model\n\
 from django.db import IntegrityError\n\
@@ -34,4 +40,5 @@ except IntegrityError:\n\
     pass\n'\
 | python3 -m shuup_workbench shell
 
+# Set the command to run the development server
 CMD ["python3", "-m", "shuup_workbench", "runserver", "0.0.0.0:8000"]
