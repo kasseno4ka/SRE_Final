@@ -1,5 +1,5 @@
 FROM node:12.21.0-buster-slim as base
-#SALAM
+#SALAM POPOLAM
 # This image is NOT made for production use.
 LABEL maintainer="Eero Ruohola <eero.ruohola@shuup.com>"
 
