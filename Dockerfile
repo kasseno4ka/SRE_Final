@@ -1,6 +1,6 @@
 FROM node:12.21.0-buster-slim as base
 LABEL maintainer="Eero Ruohola <eero.ruohola@shuup.com>"
-#TEST JENKINS
+
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
