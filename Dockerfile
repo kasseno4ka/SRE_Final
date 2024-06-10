@@ -1,6 +1,8 @@
 FROM node:12.21.0-buster-slim as base
 LABEL maintainer="Eero Ruohola <eero.ruohola@shuup.com>"
 
+
+#HDUISA
 # Install system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
